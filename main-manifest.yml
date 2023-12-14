@@ -1,0 +1,30 @@
+rp-manifest: 1
+id: camera-demo
+name: camera-demo
+version: 1
+author: Valeo
+license: GPL
+description: |
+  Camera Demo
+targets:
+  - target: main
+    content:
+      src: .rpconfig/manifest.yml
+      type: application/vnd.agl.service
+    required-permission:
+      urn:AGL:permission:real-time:
+        name: urn:AGL:permission:real-time
+        value: required
+      urn:AGL:permission:syscall:
+        name: urn:AGL:permission:syscall
+        value: required
+    required-binding:
+      - name: lib/libCameraStream.so
+        value: local
+      - name: lib/libObjectDetection.so
+        value: local
+    provided-api:
+      - name: CameraStream
+        value: auto
+      - name: ObjectDetection
+        value: auto
