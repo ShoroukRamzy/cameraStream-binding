@@ -1,15 +1,20 @@
 #ifndef STREAMHANDLERIF_H
 #define STREAMHANDLERIF_H
-#include<string>
 
-class StreamHandler{
+#include<string>
+#include "Types.h"
+#include <opencv2/opencv.hpp>
+class StreamHandlerIF{
 
     public:
-    StreamHandler()=default;
-    ~StreamHandler()=default;
-
-    virtual void init(const std::string& config_file_path)=0;
-    virtual void start()=0;
+    StreamHandlerIF()=default;
+    ~StreamHandlerIF()=default;
+    
+    virtual void init( const camera_stream_types::VirtualCamConfig& config_s)=0;
+    virtual void openCamera()=0;
+    virtual cv::Mat read()=0;
+    
+    
     
 
 };

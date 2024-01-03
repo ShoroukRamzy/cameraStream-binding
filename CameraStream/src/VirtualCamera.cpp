@@ -1,60 +1,62 @@
-#include "VirtualCamera.h"
-#include <dirent.h>
-#include <algorithm>
 #include <stdexcept>
-#include "json.hpp"
-#include <fstream>
-#include <iostream>
+#include <string>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/videodev2.h>
+#include "VirtualCamera.h"
 
-
-void VirtualCamera::init(const std::string& config_file_path)
-{
-
-    // Read JSON data from the file
-    std::ifstream configFile(config_file_path);
-    if (!configFile.is_open()) {
-        std::cerr << "Error opening JSON configuration file: " << config_file_path << std::endl;
-        return;
+void VirtualCamera::init( const camera_stream_types::VirtualCamConfig& config_s){
+    fd_device = open(config_s.device.c_str(), O_RDWR);
+    if (-1==fd_device) {
+        throw std::runtime_error("Could not open " + config_s.device);
     }
 
-    nlohmann::json j;
-    configFile >> j;
-    configFile.close();
+    input_device=config_s.device;
+    frame_time_ms=1000/config_s.fps;
+    //set camera format and resolution
+    v4l2_format fmt = {0};
+    fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+    fmt.fmt.pix.width = config_s.width;
+    fmt.fmt.pix.height = config_s.height;
+    fmt.fmt.pix.pixelformat = config_s.pixelFormat;
+    fmt.fmt.pix.field = V4L2_FIELD_NONE;
+    if (ioctl(fd_device, VIDIOC_S_FMT, &fmt) ) {
+        throw std::runtime_error("Error setting camera format for this device"+config_s.device);
+     }
 
-    config_s.device=j["DEVICE"];
-    config_s.width = j["WIDTH"];
-    config_s.height = j["HEIGHT"];
-    config_s.fps = j["FPS"];
-    config_s.pixelFormat= j["PIXELFMT"];
-    config_s.extention= j["EXT"];
-    config_s.img_dir= j["IMG_DIR"];
-    
+    img_loader_=std::make_unique<ImageLoader>();
+    writeImgs(img_loader_->loadImgs(config_s.img_dir,config_s.extention));
 }
 
-void VirtualCamera::start()
+void VirtualCamera::writeImgs(const std::vector<std::string> & img_names)
 {
-    //TO_DO
-    //loadImgs
-    //iterate to write imgs in the loopback device
-}
-
-std::vector<std::string> VirtualCamera::loadImgs(const std::string& directory, const std::string& extension){
-  
-    DIR *dir;
-    struct dirent *ent;
-    std::vector<std::string> fileNames;
-    if ((dir = opendir(directory.c_str())) != NULL) {
-        while ((ent = readdir(dir)) != NULL) {
-            std::string fileName = ent->d_name;
-            if (fileName != "." && fileName != ".." && fileName.substr(fileName.find_last_of(".") + 1) == extension) {
-                fileNames.push_back(directory + "/" + fileName);
-            }
+        for (const auto &imgName : img_names) {
+            cv::Mat frame = cv::imread(imgName);
+            cv::Mat dst;
+            cv::cvtColor(frame, dst, cv::COLOR_BGR2RGB);
+            write(fd_device, dst.data, dst.total() * dst.elemSize());
+            cv::waitKey(frame_time_ms);
         }
-        closedir(dir);
-    } else {
-        throw std::runtime_error("Could not open directory: " + directory);
-    }
+}
 
-    std::sort(fileNames.begin(), fileNames.end());
-    return fileNames;
+void VirtualCamera::openCamera()
+{
+    cap.open(input_device);
+    if(!cap.isOpened())
+        throw std::runtime_error("can not open "+input_device);
+}
+
+cv::Mat VirtualCamera::read()
+{
+    cap.read(frame);
+    if(frame.empty())
+        throw std::runtime_error("can not read frames from"+input_device);
+    return frame;
+   
+}
+
+VirtualCamera::~VirtualCamera() {
+    if(fcntl ( fd_device, F_GETFL )>0)// device is open
+        close(fd_device);
 }

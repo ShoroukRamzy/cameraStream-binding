@@ -21,6 +21,7 @@ afb::api API(api);
 	{
 		AFB_NOTICE("init Object Detection!");
 		afb_api_require_api(api, "CameraStream", 0);
+		afb_api_call_sync(api, "CameraStream", "start", 0, NULL, NULL, NULL, NULL);
 		afb_api_call_sync(api, "CameraStream", "subscribe", 0, NULL, NULL, NULL, NULL);
 		afb_api_event_handler_add(api, "CameraStream/camera_event", cameraEventHandler, NULL);
 		

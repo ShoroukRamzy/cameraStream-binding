@@ -1,19 +1,23 @@
 #include <json-c/json.h>
-//#include <wrap-json.h>
-
-#define AFB_BINDING_VERSION 4
-#include <afb/afb-binding>
-using namespace std;
+#include "CameraManager.h"
+#include"Config.h"
+#include "VirtualCamera.h"
 
 afb::event camera_event;
-afb_timer_t timer;
 
-void onTimer(afb_timer_x4_t timer, void *closure, int decount)
+void start (afb::req req,afb::received_data param)
 {
-    static int count {0};
-    AFB_NOTICE("$OTA::Capture image %d !",count++);
-    camera_event.push();
-}
+	AFB_NOTICE("Starting CameraStream Microservice!");
+	std::string config_file_path{"CameraStream/config/virual_camera_config.json"};//to be extracted from param
+    Config config;
+	camera_stream_types::VirtualCamConfig config_s=config.read(std::move(config_file_path));
+  
+    if(config_s.type=="VIRTUAL");
+		std::unique_ptr<StreamHandlerIF> virtual_camera=std::make_unique<VirtualCamera>();
+	CameraManager camera_mgr(std::move(virtual_camera),std::move(config_s),camera_event);
+
+	req.reply(0);
+} 
 
 void subscribe (afb::req req,afb::received_data param)
 {
@@ -21,10 +25,6 @@ void subscribe (afb::req req,afb::received_data param)
     AFB_NOTICE("$OTA::subscribe CameraStream!");
 	req.subscribe(camera_event);
 
-	afb_timer_create(&timer,
-					 /*start:*/ 0 /*relative*/, 1 /*sec*/, 0 /*msec*/,
-					 /*occur:*/ 0 /*infinite*/, 1000 /*period msec*/, 10 /*accuracy msec*/,
-					 /*action:*/  (afb_timer_handler_t) onTimer, camera_event, 0 /*no unref*/);
 	req.reply(0);
 
 }
@@ -48,6 +48,7 @@ int mainctl(afb_api_x4_t api,afb_ctlid_t ctlid,afb_ctlarg_t ctlarg,void *userdat
 			AFB_ERROR("??? Can't create camera Event !!");
 			return -1;
 		}
+		
 	}
 	
 	return 0;
@@ -77,6 +78,7 @@ struct afb_auth auth[]={
 const afb_verb_t verbs[]={
 afb::verb<subscribe>("subscribe"/*,nullptr,0,&auth[0]*/),//when I add loa=1 ,object detection can not subscribe
 afb::verb<unsubscribe>("unsubscribe"/*,nullptr,0,&auth[1]*/),
+afb::verb<start>("start"),
 afb::verbend()
 };
 

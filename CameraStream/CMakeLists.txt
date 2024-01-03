@@ -13,11 +13,14 @@ add_library(${TARGET} MODULE
         src/CameraManager.cpp
         src/VirtualCamera.cpp
         src/VideoStream.cpp
-        src/FramePublisher.cpp
-        src/FrameStore.cpp
+        src/FrameProcessor.cpp
+        src/FramesPublisher.cpp
+        src/CircQProcessedFrames.cpp
+        src/Config
+        src/ImageLoader.cpp
         )
 
-target_include_directories(${TARGET}
+target_include_directories(${TARGET} PRIVATE
         include
         ${OpenCV_INCLUDE_DIRS}
         external

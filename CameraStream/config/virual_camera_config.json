@@ -1,9 +1,11 @@
 {
+  "TYPE": "VIRTUAL",
   "DEVICE": "/dev/video2",
   "WIDTH": 512,
   "HEIGHT": 512,
   "PIXELFMT": "V4L2_PIX_FMT_BGR24",
   "EXT": "jpg",
   "FPS": 30,
+  "FRAME_STORE_SIZE": 100,
   "IMG_DIR": "/home/user/ShoroukWork/redpesk/camera-yolo/Self Driving Car.v3-fixed-small.yolov5pytorch/export/images/" 
 }

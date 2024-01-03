@@ -54,6 +54,17 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "iostream": "cpp"
-    }
+        "iostream": "cpp",
+        "complex": "cpp",
+        "condition_variable": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "mutex": "cpp",
+        "thread": "cpp",
+        "queue": "cpp",
+        "bitset": "cpp",
+        "shared_mutex": "cpp",
+        "afb-binding": "cpp"
+    },
+    "workbench.editor.showTabs": true
 }
