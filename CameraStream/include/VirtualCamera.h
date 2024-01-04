@@ -26,6 +26,7 @@ class VirtualCamera : public StreamHandlerIF
     cv::Mat frame;
     cv::VideoCapture cap;
     std::unique_ptr<ImageLoader> img_loader_;
+    int xioctl(int fh, unsigned long request, void *arg);
 
 };
 

@@ -25,11 +25,11 @@
     config_s.height = j["HEIGHT"];
     config_s.fps = j["FPS"];
     config_s.frameStoreSize=j["FRAME_STORE_SIZE"];
-    if(V4L2_PIX_FMT_BGR24==j["PIXELFMT"])
+    if("V4L2_PIX_FMT_BGR24"==j["PIXELFMT"])
     {
        config_s.pixelFormat= V4L2_PIX_FMT_BGR24;
     } 
-    else if (V4L2_PIX_FMT_RGB24==j["PIXELFMT"])
+    else if ("V4L2_PIX_FMT_RGB24"==j["PIXELFMT"])
     {
         config_s.pixelFormat= V4L2_PIX_FMT_RGB24;
     }

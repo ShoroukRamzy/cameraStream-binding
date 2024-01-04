@@ -6,4 +6,7 @@ cd `dirname $0`
 
 export BUILDDIR=$(pwd)/build;
 
+
+#sudo modprobe v4l2loopback
 afb-binder --config=demo.config -vvv
+#afb-binder --config=demo.config -vvv --tracereq=common --traceapi=common --traceevt=common --rpc-server unix:@CameraStream

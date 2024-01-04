@@ -1,8 +1,8 @@
 #include <json-c/json.h>
 #include "CameraManager.h"
-#include"Config.h"
+#include "Config.h"
 #include "VirtualCamera.h"
-
+#include<iostream>
 afb::event camera_event;
 
 void start (afb::req req,afb::received_data param)
@@ -10,20 +10,39 @@ void start (afb::req req,afb::received_data param)
 	AFB_NOTICE("Starting CameraStream Microservice!");
 	std::string config_file_path{"CameraStream/config/virual_camera_config.json"};//to be extracted from param
     Config config;
-	camera_stream_types::VirtualCamConfig config_s=config.read(std::move(config_file_path));
-  
-    if(config_s.type=="VIRTUAL");
-		std::unique_ptr<StreamHandlerIF> virtual_camera=std::make_unique<VirtualCamera>();
-	CameraManager camera_mgr(std::move(virtual_camera),std::move(config_s),camera_event);
+	std::unique_ptr<StreamHandlerIF> virtual_camera;
+	try{
+		
+		camera_stream_types::VirtualCamConfig config_s=config.read(std::move(config_file_path));
+         if(config_s.type=="VIRTUAL")
+			 virtual_camera=std::make_unique<VirtualCamera>();
+	    CameraManager camera_mgr(std::move(virtual_camera),std::move(config_s),camera_event);
+		camera_mgr.run();
+	}
+	catch(const std::runtime_error & e)
+	{
+	
+		AFB_NOTICE("runtime_error caught in start");
+		AFB_NOTICE(e.what());
+	}
+
+	catch(const std::exception & e)
+	{
+		
+		AFB_NOTICE("exception caught in start");
+		AFB_NOTICE(e.what());
+
+	}
 
 	req.reply(0);
-} 
+}
 
 void subscribe (afb::req req,afb::received_data param)
 {
 
     AFB_NOTICE("$OTA::subscribe CameraStream!");
 	req.subscribe(camera_event);
+
 
 	req.reply(0);
 
@@ -33,7 +52,7 @@ void unsubscribe (afb::req req,afb::received_data param)
 	AFB_NOTICE("Unsubscribe CameraStream!");
 	req.unsubscribe(camera_event);
 	req.reply(0);
-} 
+}
 
 int mainctl(afb_api_x4_t api,afb_ctlid_t ctlid,afb_ctlarg_t ctlarg,void *userdata)
 {
@@ -48,9 +67,9 @@ int mainctl(afb_api_x4_t api,afb_ctlid_t ctlid,afb_ctlarg_t ctlarg,void *userdat
 			AFB_ERROR("??? Can't create camera Event !!");
 			return -1;
 		}
-		
+
 	}
-	
+
 	return 0;
 
 }
@@ -82,7 +101,7 @@ afb::verb<start>("start"),
 afb::verbend()
 };
 
-// afbBindingExport is a must , 
+// afbBindingExport is a must ,
 // any other name make it not recognized as a binding
 const afb_binding_t afbBindingExport=afb::binding(
     "CameraStream",

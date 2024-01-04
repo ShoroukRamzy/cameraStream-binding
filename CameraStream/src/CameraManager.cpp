@@ -21,7 +21,7 @@ void CameraManager::run()
 void CameraManager::process_frames()
 {
     stream_handler_ptr_->openCamera();
-    cv::Mat frame;stream_handler_ptr_->read();
+    cv::Mat frame;
     do{
 
         frame=stream_handler_ptr_->read();
@@ -45,8 +45,13 @@ void CameraManager::publish_frames()
 
 CameraManager::~CameraManager(){
 
-    image_writer_thread.join();
-    image_processing_thread.join();
-    image_publisher_thread.join();
+    if(image_writer_thread.joinable())
+        image_writer_thread.join();
+
+    if(image_processing_thread.joinable())
+        image_processing_thread.join();
+
+    if(image_publisher_thread.joinable())
+        image_publisher_thread.join();
     
 }

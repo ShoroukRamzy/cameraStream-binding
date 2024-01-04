@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include"FrameProcessor.h"  
 
-std::vector<unsigned char> encodeImgToBinary(const cv::Mat& img, const std::string & extension){
+std::vector<unsigned char> FrameProcessor::encodeImgToBinary(const cv::Mat& img, const std::string & extension){
    
    //may need . before the extension
    std::vector<unsigned char> encodedBuffer;
@@ -12,7 +12,7 @@ std::vector<unsigned char> encodeImgToBinary(const cv::Mat& img, const std::stri
        
 }
 
-cv::Mat decodeBinaryToImg( const std::vector<unsigned char>& binary_img){
+cv::Mat FrameProcessor::decodeBinaryToImg( const std::vector<unsigned char>& binary_img){
     
     //In the case of color images, the decoded images will have the channels stored in B G R order.
     cv::Mat decodedImg=cv::imdecode(binary_img, cv::IMREAD_COLOR);

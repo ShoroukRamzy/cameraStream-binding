@@ -3,15 +3,17 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include<cstdlib>
 #include <linux/videodev2.h>
 #include "VirtualCamera.h"
 
 void VirtualCamera::init( const camera_stream_types::VirtualCamConfig& config_s){
+
     fd_device = open(config_s.device.c_str(), O_RDWR);
     if (-1==fd_device) {
         throw std::runtime_error("Could not open " + config_s.device);
     }
-
+    
     input_device=config_s.device;
     frame_time_ms=1000/config_s.fps;
     //set camera format and resolution
@@ -21,7 +23,7 @@ void VirtualCamera::init( const camera_stream_types::VirtualCamConfig& config_s)
     fmt.fmt.pix.height = config_s.height;
     fmt.fmt.pix.pixelformat = config_s.pixelFormat;
     fmt.fmt.pix.field = V4L2_FIELD_NONE;
-    if (ioctl(fd_device, VIDIOC_S_FMT, &fmt) ) {
+    if (xioctl(fd_device, VIDIOC_S_FMT, &fmt)==-1) {
         throw std::runtime_error("Error setting camera format for this device"+config_s.device);
      }
 
@@ -38,6 +40,7 @@ void VirtualCamera::writeImgs(const std::vector<std::string> & img_names)
             write(fd_device, dst.data, dst.total() * dst.elemSize());
             cv::waitKey(frame_time_ms);
         }
+         close(fd_device);
 }
 
 void VirtualCamera::openCamera()
@@ -55,6 +58,15 @@ cv::Mat VirtualCamera::read()
     return frame;
    
 }
+
+int VirtualCamera::xioctl(int fh, unsigned long request, void *arg) {
+    int r;
+    do {
+        r = ioctl(fh, request, arg);
+    } while (-1 == r && EINTR == errno);
+    return r;
+}
+
 
 VirtualCamera::~VirtualCamera() {
     if(fcntl ( fd_device, F_GETFL )>0)// device is open
